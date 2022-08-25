@@ -1,0 +1,25 @@
+create table store(id integer primary key, item text, price integer,aisle integer, description text);
+
+--Value insertion into the table created
+insert into store values(1, "gpu", 1200, 1, "graphics processing unit"),
+(2, "cpu", 300, 1, "Brain of the computer"),
+(3, "psu", 120, 1, "power supply unit"),
+(4, "monitor", 250, 3, "imagery display"),
+(5, "motherboard", 300, 1, "multiple device interface"),
+(6, "case", 150, 2, "computer chassis"),
+(7, "ram", 80, 1, "random access memory"),
+(8, "fans", 25, 2, "cooling fans"),
+(9, "water cooler", 160, 2, "liquid cooling option"),
+(10, "SSD", 140, 2, "solid state drive storage"),
+(11, "HDD", 80, 2, "harddisk storage"),
+(12, "keyboard", 110, 4, "typing interface"),
+(13, "mouse", 50, 4, "directional input interface"),
+(15, "headphones",75, 4, "audio interface");
+
+--Organization of the price of items in a descending order.
+select * from store 
+order by price desc;
+
+-- Average price of aisle 1 (primary components).
+select AVG(price) "average price of aisle 1(primary components)"
+FROM store where aisle=1;
