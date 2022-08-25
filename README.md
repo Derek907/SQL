@@ -1,5 +1,4 @@
-# SQL
-## SQL Portfolio
+# Derek's SQL Portfolio
 
 Hello, welcome to my SQL portfolio!
 
