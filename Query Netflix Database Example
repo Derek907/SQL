@@ -1,0 +1,48 @@
+-- In this SQL code I am querying a set of databases that contain Netflix data to display information about the data contained using PostgreSQL dialect.
+
+-- This statement results in a joined table displaying information from both the netflix_people table and the netflix_titles_info table.
+
+select title_info.title,
+title_info.rating,
+title_info.duration,
+people.cast,
+people.director 
+    from "CharlotteChaze/BreakIntoTech"."netflix_people" people
+    left join "CharlotteChaze/BreakIntoTech"."netflix_titles_info" title_info
+        on people.show_id = title_info.show_id
+    order by title asc;
+
+
+-- A display counting only the total number of items in the table with the tag type='Movie'
+
+select 
+count(*) "Total movie count"
+    from "CharlotteChaze/BreakIntoTech"."netflix_titles_info" titles
+        where type ='Movie';
+
+
+-- Recognition of the lastest new batch of titles added to the Netflix catalog based on the data.
+
+select 
+max(date(date_added)) "Batch of newest titles"
+    from "CharlotteChaze/BreakIntoTech".netflix_titles_info titles;
+
+-- A statement finding a particular movie named "Bright Star" and its director.
+
+select
+title,
+director
+    from "CharlotteChaze/BreakIntoTech".netflix_people people
+    left join "CharlotteChaze/BreakIntoTech".netflix_titles_info titles
+        on people.show_id=titles.show_id
+        where titles.title='Bright Star';
+
+
+-- This statement shows the oldest 'Movie' in the catalog by release year.
+
+select title "Oldest title", min(release_year) "Release year"
+    from "CharlotteChaze/BreakIntoTech".netflix_titles_info
+        where type='Movie'
+    group by title, release_year
+    order by release_year asc
+    limit 1;
