@@ -38,11 +38,16 @@ director
         where titles.title='Bright Star';
 
 
--- This statement shows the oldest 'Movie' in the catalog by release year.
+-- This statement shows the oldest 'Movie's in the catalog by release year using a sub query and then ordering by their name.
 
-select title "Oldest title", min(release_year) "Release year"
+select 
+title "Title",
+release_year "Release year"
     from "CharlotteChaze/BreakIntoTech".netflix_titles_info
         where type='Movie'
-    group by title, release_year
-    order by release_year asc
-    limit 1;
+        and release_year <=
+            (select min(release_year)  
+                from "CharlotteChaze/BreakIntoTech".netflix_titles_info
+                    where type='Movie')
+order by title asc;
+        
