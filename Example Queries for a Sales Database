@@ -1,0 +1,68 @@
+##SQL code made in SQLiteStudio for a database with information on sales month by month.##
+
+
+-- Total number of orders placed in January --
+select count(orderID) as Total_Jan_Orders 
+    from BIT_DB.JanSales;
+
+
+-- Total number of iPhones sold in January --
+select count(orderID) Total_Jan_iPhone_Orders,
+    round(sum(Quantity*price), 2) Revenue
+    from BIT_DB.JanSales
+        where JanSales.Product = 'iPhone';
+    
+
+--All the account numbers selected for every order made in February --
+select acctnum Feb_Account_Orders,
+    cust.order_id
+    from BIT_DB.customers cust
+        left join BIT_DB.FebSales Feb
+            on Feb.orderID = cust.order_id
+        order by acctnum desc;
+        
+
+-- Total revenue and number of orders by account number for the month of February descending by revenue --       
+select acctnum Account_Number,
+    count(order_id) Orders,
+    round(sum(Quantity*price), 2) Total_Revenue
+    from BIT_DB.customers Cust
+    join BIT_DB.FebSales Feb
+        where Cust.order_id = Feb.orderID
+    group by Account_Number
+    order by Total_Revenue desc;
+    
+
+-- Cheapest product sold in January --
+select distinct Product Cheapest_Product_Sold_in_Jan,
+    min(price) price
+    from BIT_DB.JanSales
+    order by price asc limit 1;
+    
+
+-- Gross revenue for each different product in January descending by revenue --
+select Product,
+    round(sum(Quantity)*price, 2) as Gross_revenue
+    from BIT_DB.JanSales
+    group by Product
+    order by Gross_revenue desc;
+
+
+-- Products that were sold to 548 Lincoln St, Seattle, WA 98101 in the month of February --
+select Product,
+    Quantity,
+    round(sum(Quantity)*price, 2) Gross_revenue,
+    location
+    from BIT_DB.FebSales Feb
+        where location = '548 Lincoln St, Seattle, WA 98101'
+    group by Product;
+
+
+-- AVG price spent in February for customers who bought more than 2 products at a time. --
+select count(Cust.acctnum) Orders,
+    round(avg(Quantity*price), 2) Average_Spent_per_Customer
+    from BIT_DB.FebSales Feb
+    left join BIT_DB.customers Cust
+        on Cust.order_id = Feb.orderID
+        where Feb.Quantity > 2;
+    
