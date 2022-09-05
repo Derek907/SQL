@@ -7,37 +7,40 @@ from BIT_DB.JanSales;
 
 
 -- Total number of iPhones sold in January --
-select count(orderID) Total_Jan_iPhone_Orders,
-    round(sum(Quantity*price), 2) Revenue
-from BIT_DB.JanSales
-    where JanSales.Product = 'iPhone';
+select count(orderID) as TotalJanIPhoneOrders,
+    round(sum(Quantity*price), 2) as  Revenue
+from BIT_DB.JanSales as JS
+    where JS.Product = 'iPhone';
     
 
 --All the account numbers selected for every order made in February --
-select acctnum Feb_Account_Orders,
-    cust.order_id
-from BIT_DB.customers cust
-    left join BIT_DB.FebSales Feb
+select acctnum as Account,
+    cust.order_id as  OrderID,
+    orderdate as OrderDate
+from BIT_DB.customers as cust
+    left join BIT_DB.FebSales as Feb
         on Feb.orderID = cust.order_id
+    where OrderDate like '02/%'
     order by acctnum desc;
         
 
 -- Total revenue and number of orders by account number for the month of February descending by revenue --       
-select acctnum Account_Number,
-    count(order_id) Orders,
-    round(sum(Quantity*price), 2) Total_Revenue
-from BIT_DB.customers Cust
-    join BIT_DB.FebSales Feb
-        where Cust.order_id = Feb.orderID
-    group by Account_Number
-    order by Total_Revenue desc;
+select acctnum as AccountNumber,
+    count(order_id) as Orders,
+    round(sum(Quantity*price), 2) as TotalRevenue
+from BIT_DB.customers as Cust
+    join BIT_DB.FebSales as FS
+        where Cust.order_id = FS.orderID
+    group by AccountNumber
+    order by TotalRevenue desc;
     
 
 -- Cheapest product sold in January --
-select distinct Product Cheapest_Product_Sold_in_Jan,
-    min(price) price
+select distinct Product as CheapestProductSold,
+    min(price) as price
 from BIT_DB.JanSales
-    order by price asc limit 1;
+    order by price asc
+    limit 1;
     
 
 -- Gross revenue for each different product in January descending by revenue --
@@ -51,8 +54,8 @@ from BIT_DB.JanSales
 -- Products that were sold to 548 Lincoln St, Seattle, WA 98101 in the month of February --
 select Product,
     Quantity,
-    round(sum(Quantity)*price, 2) Gross_revenue,
-    location
+    round(sum(Quantity)*price, 2) as GrossRevenue,
+    location as Location
 from BIT_DB.FebSales Feb
     where location = '548 Lincoln St, Seattle, WA 98101'
     group by Product;
@@ -60,10 +63,10 @@ from BIT_DB.FebSales Feb
 
 -- AVG price spent in February for customers who bought more than 2 products at a time. --
 
-select count(Cust.acctnum) Orders,
-    round(avg(Quantity*price), 2) Average_Spent_per_Customer
-from BIT_DB.FebSales Feb
-    left join BIT_DB.customers Cust
+select count(Cust.acctnum) as Orders,
+    round(avg(Quantity*price), 2) as AverageSpentPerCustomer
+from BIT_DB.FebSales as Feb
+    left join BIT_DB.customers as Cust
         on Cust.order_id = Feb.orderID
         where Feb.Quantity > 2;
         
@@ -72,22 +75,74 @@ from BIT_DB.FebSales Feb
 /* (09/04/22) EDIT : Added a new statement relating to the same database using the 'like' operator */
 -- Selecting the entire month of February for orders and filtering that further by selecting only orders to Los Angeles --
 
-select location,
+select location as Location,
     Quantity,
-    orderdate
+    orderdate as OrderDate
 from BIT_DB.FebSales
     where location
         like "%Los Angeles%"
-    order by orderdate;
+    order by OrderDate;
     
 
 -- Selecting the total orders and quantity of items shipped to Los Angeles --
 
 select Product,
-    sum(Quantity) Quantity,
-    round(sum(Quantity*price), 2) as "Gross Revenue ($)"
+    sum(Quantity) as Quantity,
+    round(sum(Quantity*price), 2) as GrossRevenue
 from BIT_DB.FebSales
     where location
         like '%Los Angeles%'
     group by Product
-    order by "Gross Revenue ($)" asc;
+    order by GrossRevenue asc;
+    
+    
+    
+/* (09/04/22) EDIT #2: Added a series of new statements using more 'like' operators, avg(), sum(), etc.*/
+-- Ney York locations whom have recieved at least 3 orders in January --
+
+select distinct location as Location,
+    count(orderID) as TotalOrders
+from BIT_DB.JanSales
+    where location like '%NY%'
+    group by location
+    having count(orderID) >= 3;
+    
+
+-- Quantity of each different type of headphones sold in February --
+
+select Product,
+    sum(Quantity) as Quantity,
+    round(sum(Quantity*price), 2) as GrossRevenue
+from BIT_DB.FebSales
+    where Product
+        like '%Headphones%'
+    group by Product;
+    
+
+-- Average amount spent by all accounts in February --
+
+select count(Cust.acctnum) as TotalAccounts,
+    round(avg(Quantity*price), 2) as AvgAcctSpent
+from BIT_DB.customers as Cust
+    join BIT_DB.FebSales as FS
+        on FS.orderID = Cust.order_id;
+        
+
+-- Average quantity of products purchased for all accounts in February --
+
+select count(Cust.acctnum) as TotalAccounts,
+    round(avg(Quantity), 2) as AvgQuantityPurchased
+from BIT_DB.customers as Cust
+    join BIT_DB.FebSales as FS
+        on  FS.orderID = Cust.order_id;
+  
+      
+-- Highest revenue generating product for Janurary --
+
+select Product,
+    round(sum(Quantity*price), 2) as Revenue
+from BIT_DB.JanSales as JS
+    group by Product
+    order by Revenue desc
+    limit 1;
+    
