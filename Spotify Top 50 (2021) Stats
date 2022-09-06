@@ -1,0 +1,120 @@
+-- This SQL code was written in SQLiteStudio --
+
+-- Table creation and adding to database, I will be importing already existing data, however I need to create the table for the data top be contained. --
+
+
+create table BIT_DB.spotifyStats (
+id integer primary key,
+artist_name varchar not null,
+track_name varchar not null,
+track_id varchar not null,
+popularity integer not null,
+danceability decimal(4,3) not null,
+energy decimal(4,3) not null,
+key integer not null,
+loudness decimal(5,3) not null,
+mode integer not null,
+speechiness decimal(5,4) not null,
+acousticness decimal(6,5) not null,
+instrumentalness text not null,
+liveness decimal(5,4) not null,
+valence decimal(4,3) not null,
+tempo decimal(6,3) not null,
+duration_ms integer not null,
+time_signature integer not null );
+
+-- I have deliberately kept the names as something I would later intentionally rename in code to practice getting used to formatting and using Camel Case --
+
+-- After creating the table with the code above, I imported the spotify stats using the data found from Kaggle (https://www.kaggle.com/datasets/equinxx/spotify-top-50-songs-in-2021?select=spotify_top50_2021.csv).-- 
+-- This populates the data without me having to import every single point manually and checking for human errors. -- 
+
+
+
+select *
+from BIT_DB.spotifyStats;
+
+-- Songs sorted by popularity including artist and duration --
+select track_name as Title,
+    artist_name as Artist,
+    duration_ms as Duration,
+    popularity as Popularity
+from BIT_DB.spotifyStats
+    group by Title
+    order by Popularity desc;
+    
+
+-- Converted milliseconds to seconds and ordered by DurationSeconds --
+select track_name as Title,
+    artist_name as Artist,
+    (duration_ms/1000) as DurationSeconds
+from BIT_DB.spotifyStats
+    order by DurationSeconds desc;
+    
+
+-- A very filtered list containg fast tempo, very popular, and high enery songs. --
+select track_name as Title,
+    artist_name as Artist,
+    (duration_ms/1000) as DurationSeconds,
+    tempo as Tempo,
+    energy as Energy,
+    popularity as Popularity
+from BIT_DB.spotifyStats
+    where Tempo >= 132
+        and Popularity >= 80
+        and Energy >= 0.700
+    order by DurationSeconds desc;
+    
+
+-- Spotify Top 10 most popular songs based on this dataset --
+select track_name as Title,
+    artist_name as Artist,
+    (duration_ms/1000) as DurationSeconds,
+    popularity as Popularity
+from BIT_DB.spotifyStats
+    order by Popularity desc
+    limit 10;
+    
+
+-- Number of songs in the list by each artist by counting the number of occurrences of the Artist's name -- 
+-- This organizes by a unique artist and wouldn't include any "feat." in the artist credits. Since this list doesn't contain any featured artists this works here. --
+select artist_name as Artist,
+    count(artist_name) as NumberOfSongs
+from BIT_DB.spotifyStats
+    group by Artist
+    order by NumberOfSongs desc;
+    
+    
+-- The same as above but using a 'having' clause to find only artists with 2 or more songs in the list. --
+select artist_name as Artist,
+    count(artist_name) as NumberOfSongs
+from BIT_DB.spotifyStats
+    group by Artist
+        having NumberOfSongs >= 2
+    order by NumberOfSongs desc;
+    
+
+-- Each song's Key --
+select track_name as Title,
+    artist_name as Artist,
+    key as Key
+from BIT_DB.spotifyStats
+    order by Key desc;
+    
+
+-- The amount of songs in the list that match a particular time signature, this list primarily contains songs in 4/4 time and only two songs in 3/4 time. There are no other time signatures contained in this list. --
+-- This is due to 4/4 time being the standard beat, which makes the two songs that are 3/4 time outliers. --
+select time_signature as TimeSignature,
+    count(time_signature) as CountSignature
+from BIT_DB.spotifyStats
+    group by TimeSignature
+    order by CountSignature desc;
+    
+
+-- Displaying songs that do not have the standard time signature. This would work for any time signature that isn't 4/4 time -- 
+select track_name as Title,
+    artist_name as Artist,
+    (duration_ms/1000) as DurationSeconds,
+    time_signature as TimeSignature
+from BIT_DB.spotifyStats
+    where TimeSignature != 4
+    order by Title asc;
