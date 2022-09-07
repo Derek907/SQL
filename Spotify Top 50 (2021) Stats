@@ -118,3 +118,18 @@ select track_name as Title,
 from BIT_DB.spotifyStats
     where TimeSignature != 4
     order by Title asc;
+    
+
+/* UPDATE (09/07/22) :*/ 
+-- Creating a CTE to query for Artists with a song popularity of at least 90 --
+with artistPopularityTemp as (
+    select artist_name as TempArtist,
+        avg(popularity) as ArtistAVGPopularity
+    from spotifyStats
+    group by TempArtist)
+
+select TempArtist,
+    ArtistAVGPopularity,
+    'Top Star' as Rating
+from artistPopularityTemp
+    where ArtistAVGPopularity >= 90;
