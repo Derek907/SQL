@@ -1,0 +1,131 @@
+# SQL Murder Mystery : (https://mystery.knightlab.com/#experienced)
+## Database schema diagram : (https://mystery.knightlab.com/schema.png)
+
+/*All code below is my own interpretation and writing. I did not copy/paste anything, SQL Murder Mystery is based in SQLite.*/
+
+
+-- Querying for the general information of the murder and filtering out other irrelevant entries.
+select * from crime_scene_report
+	where city = 'SQL City'
+		and type = 'murder'
+		and date = 20180115;
+
+-- Finding witness 1
+select P.id,
+	P.name,
+	P.address_number,
+	P.address_street_name
+from person P
+	where P.address_street_name = 'Northwestern Dr'
+	order by P.address_number desc limit 1;
+		-- Witness 1 name : Morty Schapiro (ID: 14887)
+
+-- Finding witness 2
+select P.id,
+	P.name,
+	P.address_number,
+	P.address_street_name
+from person P
+	
+	where P.address_street_name = 'Franklin Ave'
+		and P.name like '%Annabel%';
+			-- Witness 2 name : Annabel Miller (ID: 16371)
+			
+-- Querying for witness testimony on the murder
+select P.name,
+	I.transcript
+from person P
+	join interview I
+		on P.id = I.person_id
+	where P.name = 'Annabel Miller'
+		or P.name = 'Morty Schapiro';
+	/* Morty Schapiro witness testimony : "I heard a gunshot and then saw a man run out. 
+		He had a "Get Fit Now Gym" bag. The membership number on the bag started with "48Z". 
+		Only gold members have those bags. The man got into a car with a plate that included "H42W".*/
+
+	/* Annabel Miller witness testimony : "I saw the murder happen, 
+		and I recognized the killer from my gym when I was working out last week on January the 9th.*/
+
+-- Using the testimony we can find out information on the suspect by querying the membership information at Get Fit Now Gym.
+select P.name,
+	P.license_id licenseID,
+	DL.plate_number licensePlate,
+	P.address_number address,
+	P.address_street_name street,
+	P.ssn,
+	Gym.id gymID	
+from person P
+	join get_fit_now_member Gym
+		on P.id = Gym.person_id
+	join drivers_license DL
+		on P.license_id = DL.id
+	where Gym.id like '48Z%'
+	and DL.plate_number like '%H42W%';
+	-- This query discovers that the witness describes the suspect as Jeremy Bowers.
+
+-- Querying the other witness testimony to verify and solidify witness testimony, and filtering for people there during the time she was there.
+select gymMember.name,
+	gymCI.check_in_date date,
+	gymCI.check_in_time timeIn,
+	gymCI.check_out_time timeOut
+from get_fit_now_member gymMember
+	join get_fit_now_check_in gymCI
+		on gymMember.id = gymCI.membership_id
+	where date = 20180109
+	and timeIn <= 1600
+	and timeOut >= 1700;
+	-- This testimony shows that Joe Germuska and Jeremy Bowers were there at the same time as Annabel.
+
+
+/* Using the testimonies provided we can see that Jeremy Bowers is the murderer and is present in both testimonies.
+However, it is implied theres more to the story than meets the eye, there's someone pulling the strings behind Bowers.
+Here we will look into the interview of Jeremy Bowers to attempt to find the real villian!*/
+
+select P.name,
+	P.id,
+	I.transcript
+from person P
+	join interview I
+		on P.id = I.person_id
+	where P.name = 'Jeremy Bowers';
+
+	/*From Jeremy's interview :
+		"I was hired by a woman with a lot of money. 
+		I don't know her name but I know she's around 5'5" (65") or 5'7" (67"). 
+		She has red hair and she drives a Tesla Model S.
+		I know that she attended the SQL Symphony Concert 3 times in December 2017."*/
+
+
+-- Final query using a series of joins to collect information to then filter out to find the mastermind!
+select distinct(P.name),
+	P.ssn,
+	P.license_id licenseID,
+	DL.height,
+	DL.age,
+	DL.gender,
+	DL.hair_color hairColor,
+	DL.car_make carMake,
+	DL.car_model carModel,
+	Inc.annual_income annualIncome,
+	FEC.event_name event,
+	count(FEC.event_name) timesAttended	
+from person P
+	join drivers_license DL
+		on P.license_id = DL.id
+	join income Inc
+		on P.ssn = Inc.ssn
+	join facebook_event_checkin FEC
+		on P.id = FEC.person_id
+	where DL.height >= 65
+		and DL.height <= 67
+		and carMake = 'Tesla'
+		and carModel = 'Model S'
+		and DL.gender = 'female'
+		and FEC.date like '2017%';
+
+
+/*using a 'where' clause and then a series of 'and' clauses we can filter out all other entries by using Jeremy's testimony.
+Upon using these filters we discover the mastermind behind the murder and find that her name is Miranda Priestly!
+She hired Jeremy Bowers to murder another person. Case closed!*/
+
+
